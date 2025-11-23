@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>CrackLab 金幣排行榜</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; text-align: center; }
+    h1 { color: #333; }
+    table { margin: 20px auto; border-collapse: collapse; width: 70%; background: #fff; }
+    th, td { border: 1px solid #ccc; padding: 10px; }
+    th { background: #eee; }
+    button { margin: 5px; padding: 5px 10px; cursor: pointer; border: none; border-radius: 4px; }
+    .add { background: #4CAF50; color: white; }
+    .delete { background: #f44336; color: white; }
+  </style>
+</head>
+<body>
+  <h1>🏆 CrackLab 金幣排行榜</h1>
+  <table id="coinTable">
+    <thead>
+      <tr><th>名字</th><th>數量</th><th>操作</th></tr>
+    </thead>
+    <tbody></tbody>
+  </table>
+
+  <script>
+    // 從 GitHub Raw JSON 載入資料
+    const COINS_URL = "https://raw.githubusercontent.com/haoneihuneixiang-sys/coin-ranking/main/coins.json";
+
+
+    let coins = {};
+
+    async function loadCoins() {
+      try {
+        const res = await fetch(COINS_URL);
+        coins = await res.json();
+      } catch (e) {
+        console.error("載入失敗", e);
+        coins = {};
+      }
+      renderTable();
+    }
+
+    function renderTable() {
+      const tbody = document.querySelector("#coinTable tbody");
+      tbody.innerHTML = "";
+      const sorted = Object.entries(coins).sort((a,b)=>b[1]-a[1]);
+      sorted.forEach(([uid, amt]) => {
+        const row = document.createElement("tr");
+        row.innerHTML = `
+          <td>${uid}</td>
+          <td>${amt}</td>
+          <td>
+            <button class="add" onclick="addCoin('${uid}')">增加</button>
+            <button class="delete" onclick="deleteCoin('${uid}')">刪除</button>
+          </td>
+        `;
+        tbody.appendChild(row);
+      });
+    }
+
+    function addCoin(uid) {
+      coins[uid] = (coins[uid] || 0) + 1;
+      renderTable();
+      // ⚠️ 注意：這裡只是前端顯示，若要同步到 GitHub 必須用 API
+    }
+
+    function deleteCoin(uid) {
+      coins[uid] = Math.max((coins[uid] || 0) - 1, 0);
+      renderTable();
+      // ⚠️ 同樣需要 API 才能真正更新 GitHub
+    }
+
+    loadCoins();
+  </script>
+</body>
+</html>
